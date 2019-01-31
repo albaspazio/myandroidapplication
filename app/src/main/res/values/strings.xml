@@ -1,0 +1,14 @@
+<resources>
+    <string name="app_name">My Application</string>
+
+    <string name="hello_android">Hello Android !</string>
+
+    <string name="close_alert">Close App?</string>
+    <string name="close_app_message">Do you really want to close the App</string>
+    <string name="yes">yes</string>
+    <string name="no">no</string>
+
+    <string name="tts_language_notsupported">The Language specified is not supported!</string>
+    <string name="tts_notinitialized">Initialization Failed!</string>
+
+</resources>
