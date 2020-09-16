@@ -2,12 +2,12 @@ package org.albaspazio.myapplication.fragments
 
 import android.speech.tts.TextToSpeech
 import android.view.View
-import androidx.navigation.Navigation
 import io.reactivex.android.schedulers.AndroidSchedulers
 import io.reactivex.rxkotlin.addTo
-import org.albaspazio.myapplication.R
 import kotlinx.android.synthetic.main.fragment_main.*
+import org.albaspazio.core.fragments.BaseFragment
 import org.albaspazio.myapplication.MainApplication
+import org.albaspazio.myapplication.R
 import org.albaspazio.myapplication.classes.TestClass
 
 class TestFragment : BaseFragment(
@@ -25,9 +25,9 @@ class TestFragment : BaseFragment(
     override fun onResume() {
         super.onResume()
 
-        activity!!.window.decorView.systemUiVisibility = View.SYSTEM_UI_FLAG_VISIBLE
+        requireActivity().window.decorView.systemUiVisibility = View.SYSTEM_UI_FLAG_VISIBLE
 
-        val application         = context!!.applicationContext as MainApplication
+        val application         = requireContext().applicationContext as MainApplication
         tts                     = application.tts
 
 

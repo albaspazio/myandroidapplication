@@ -1,29 +1,27 @@
 package org.albaspazio.myapplication
 
 
-import android.Manifest
-import android.content.DialogInterface
-import android.content.pm.PackageManager
-import androidx.appcompat.app.AppCompatActivity
 import android.os.Bundle
 import android.view.View
 import androidx.appcompat.app.AlertDialog
-import androidx.core.app.ActivityCompat
-import androidx.core.content.ContextCompat
+import androidx.appcompat.app.AppCompatActivity
 import androidx.navigation.NavController
 import androidx.navigation.NavDestination
 import androidx.navigation.findNavController
 import androidx.navigation.ui.setupActionBarWithNavController
-import org.albaspazio.myapplication.fragments.BaseFragment
+import com.intentfilter.androidpermissions.PermissionManager
+import com.intentfilter.androidpermissions.models.DeniedPermissions
 import kotlinx.android.synthetic.main.activity_main.*
+import org.albaspazio.core.fragments.BaseFragment
+import org.albaspazio.core.fragments.iNavigated
+import java.util.*
 
-// NavController.OnNavigatedListener does not resolve with android.arch.navigation:navigation-ui-ktx:1.0.0-alpha09
-// must use : android.arch.navigation:navigation-ui-ktx:1.0.0-alpha07
 
-class MainActivity : AppCompatActivity(), NavController.OnNavigatedListener, DialogInterface.OnDismissListener  {
+class MainActivity : AppCompatActivity(), NavController.OnDestinationChangedListener, iNavigated {
 
-    private val TEST_PERMISSIONS_REQUEST_WRITE = 1
-    private val TEST_PERMISSIONS_REQUEST_INTERNET = 2
+//    private val TEST_PERMISSIONS_REQUEST_WRITE = 1
+//    private val TEST_PERMISSIONS_REQUEST_INTERNET = 2
+    var haveAudioRecordPermission: Boolean = false
 
     private var dialog: AlertDialog? = null
 
@@ -32,18 +30,20 @@ class MainActivity : AppCompatActivity(), NavController.OnNavigatedListener, Dia
         setContentView(R.layout.activity_main)
 
         setupActionBarWithNavController(findNavController(R.id.my_nav_host_fragment))
-        findNavController(R.id.my_nav_host_fragment).addOnNavigatedListener(this)
+        findNavController(R.id.my_nav_host_fragment).addOnDestinationChangedListener(this)
 
-        if (ContextCompat.checkSelfPermission(this, Manifest.permission.WRITE_EXTERNAL_STORAGE) != PackageManager.PERMISSION_GRANTED)
-            ActivityCompat.requestPermissions(this, arrayOf(Manifest.permission.WRITE_EXTERNAL_STORAGE),TEST_PERMISSIONS_REQUEST_WRITE)
+//        checkPermissions(Manifest.permission.RECORD_AUDIO)
 
-        if (ContextCompat.checkSelfPermission(this, Manifest.permission.INTERNET) != PackageManager.PERMISSION_GRANTED)
-            ActivityCompat.requestPermissions(this, arrayOf(Manifest.permission.INTERNET),TEST_PERMISSIONS_REQUEST_INTERNET)
+//        if (ContextCompat.checkSelfPermission(this, Manifest.permission.WRITE_EXTERNAL_STORAGE) != PackageManager.PERMISSION_GRANTED)
+//            ActivityCompat.requestPermissions(this, arrayOf(Manifest.permission.WRITE_EXTERNAL_STORAGE),TEST_PERMISSIONS_REQUEST_WRITE)
+//
+//        if (ContextCompat.checkSelfPermission(this, Manifest.permission.INTERNET) != PackageManager.PERMISSION_GRANTED)
+//            ActivityCompat.requestPermissions(this, arrayOf(Manifest.permission.INTERNET),TEST_PERMISSIONS_REQUEST_INTERNET)
     }
 
     override fun onSupportNavigateUp() = findNavController(R.id.my_nav_host_fragment).navigateUp()
 
-    override fun onNavigated(controller: NavController, destination: NavDestination){}
+    override fun onDestinationChanged(controller: NavController, destination: NavDestination,arguments: Bundle?) {}
 
     override fun onWindowFocusChanged(hasFocus: Boolean) {
         super.onWindowFocusChanged(hasFocus)
@@ -51,7 +51,23 @@ class MainActivity : AppCompatActivity(), NavController.OnNavigatedListener, Dia
             refreshNavigationVisibility()
     }
 
-    fun refreshNavigationVisibility() {
+
+    private fun checkPermissions(perm: String) {
+        val permissionManager: PermissionManager = PermissionManager.getInstance(applicationContext)
+        permissionManager.checkPermissions(
+            Collections.singleton(perm),
+            object : PermissionManager.PermissionRequestListener {
+                override fun onPermissionGranted() {
+                    haveAudioRecordPermission = true
+                }
+
+                override fun onPermissionDenied(deniedPermissions: DeniedPermissions) {
+                    haveAudioRecordPermission = false
+                }
+            })
+    }
+
+    override fun refreshNavigationVisibility() {
         val currentFragment = my_nav_host_fragment.childFragmentManager.fragments.firstOrNull() as? BaseFragment
 
         if (currentFragment?.hideAndroidControls == true) {
@@ -85,8 +101,6 @@ class MainActivity : AppCompatActivity(), NavController.OnNavigatedListener, Dia
         }
     }
 
-    override fun onDismiss(dialog: DialogInterface) {}
-
     override fun onDestroy() {
 
         // release TTS
@@ -94,7 +108,7 @@ class MainActivity : AppCompatActivity(), NavController.OnNavigatedListener, Dia
         application.tts?.shutdown()
 
         dialog?.dismiss()
-        findNavController(R.id.my_nav_host_fragment).removeOnNavigatedListener(this)
+        findNavController(R.id.my_nav_host_fragment).removeOnDestinationChangedListener(this)
         super.onDestroy()
     }
 }
